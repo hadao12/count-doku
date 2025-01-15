@@ -1,7 +1,9 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.hilt)
+    alias(libs.plugins.compose.compiler)
 }
 
 android {
@@ -36,6 +38,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -56,4 +59,34 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+    implementation(libs.okhttp)
+    implementation(libs.logging.interceptor)
+
+    //Dagger - Hilt
+    implementation(libs.hilt.android)
+    implementation(libs.hilt.navigation.compose)
+    ksp(libs.hilt.compiler)
+
+    // Timber
+    implementation(libs.jakewharton.timber)
+
+    // Paging
+    implementation(libs.androidx.paging.compose)
+    implementation(libs.androidx.paging.runtime)
+
+    // Compose dependencies
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.accompanist.flowlayout)
+
+    // RamCosta Navigation
+    implementation(libs.compose.destination.animation.core)
+    implementation(libs.compose.destination.core)
+    ksp(libs.compose.destination.ksp)
+
+    // Navigation animation
+    implementation(libs.accompanist.navigation.animation)
 }
