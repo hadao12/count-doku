@@ -22,6 +22,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
@@ -40,8 +41,10 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.coda.countdoku.R
+import com.coda.countdoku.models.GameLevel
 import com.coda.countdoku.presentation.utils.getGradientForLevel
 import kotlinx.coroutines.delay
 
@@ -49,22 +52,24 @@ import kotlinx.coroutines.delay
 fun LevelScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
+    viewModel: LevelViewModel = viewModel()
 ) {
-    Level()
+    val gameLevelList by viewModel.gameLevel.collectAsState()
+    Level(
+        modifier = modifier,
+        gameLevelList = gameLevelList
+    )
 }
-
-val leverNumbers = listOf(
-    "1", "2", "3", "4", "5", "6", "7"
-)
 
 @Composable
 fun Level(
     modifier: Modifier = Modifier,
+    gameLevelList: List<GameLevel>
 ) {
     val gradientBrush = getGradientForLevel(level = 1)
 
     val pagerState = rememberPagerState(initialPage = 0) {
-        leverNumbers.size
+        gameLevelList.size
     }
 
     Scaffold(
@@ -97,17 +102,19 @@ fun Level(
                     state = pagerState,
                     contentPadding = PaddingValues(horizontal = 50.dp)
                 ) { index ->
+                    val gameLevel = gameLevelList[index]
                     Box(
                         modifier = Modifier
                             .fillMaxWidth(),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = leverNumbers[index],
+                            text = "${gameLevel.level}",
                             style = TextStyle(
                                 fontSize = 186.sp,
                                 fontWeight = FontWeight.Thin,
-                                color = Color.White
+                                color = Color.White,
+                                textAlign = TextAlign.Center
                             )
                         )
                     }

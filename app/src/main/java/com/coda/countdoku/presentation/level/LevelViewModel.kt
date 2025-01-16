@@ -3,24 +3,24 @@ package com.coda.countdoku.presentation.level
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.coda.countdoku.data.local.dao.Level1Dao
-import com.coda.countdoku.models.Level1
+import com.coda.countdoku.data.local.dao.GameMetaDataDao
+import com.coda.countdoku.models.GameLevel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class LevelViewModel(application: Application) : AndroidViewModel(application) {
-    private val _lever1List = MutableStateFlow<List<Level1>>(emptyList())
-    val lever1List: StateFlow<List<Level1>> = _lever1List
+    private val _gameLevel = MutableStateFlow<List<GameLevel>>(emptyList())
+    val gameLevel: StateFlow<List<GameLevel>> = _gameLevel
 
     init {
-        fetchLever1Data()
+        fetchGameLevelData()
     }
 
-    private fun fetchLever1Data() {
+    private fun fetchGameLevelData() {
         viewModelScope.launch {
-            val lever1Dao = Level1Dao(getApplication())
-            _lever1List.value = lever1Dao.getAllLevel1()
+            val gameMetaDataDao = GameMetaDataDao(getApplication())
+            _gameLevel.value = gameMetaDataDao.getAllLevel()
         }
     }
 }
