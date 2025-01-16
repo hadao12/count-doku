@@ -5,7 +5,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.coda.countdoku.presentation.home.HomeScreen
+import com.coda.countdoku.presentation.level.LevelScreen
 import com.coda.countdoku.presentation.splash.SplashScreen
 
 @Composable
@@ -19,10 +19,14 @@ fun RootNavigation() {
         composable(route = Screen.SPLASH.route) {
             SplashScreen(
                 modifier = Modifier,
+                navController = navController
             )
         }
         composable(route = Screen.HOME.route) {
-            HomeScreen(navController = navController)
+            LevelScreen(
+                modifier = Modifier,
+                navController = navController
+            )
         }
     }
 }

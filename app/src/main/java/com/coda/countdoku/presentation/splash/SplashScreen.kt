@@ -2,6 +2,7 @@ package com.coda.countdoku.presentation.splash
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,19 +26,24 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.coda.countdoku.R
-import com.coda.countdoku.presentation.utils.createGradientBackground
+import com.coda.countdoku.presentation.utils.createGradientWithColorsAndPercentages
 import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreen(
     modifier: Modifier = Modifier,
+    navController: NavController
 ) {
-    val gradientBrush = createGradientBackground(
+    val gradientBrush = createGradientWithColorsAndPercentages(
         colors = listOf(
             Color(0xFFEBFF9B),
             Color(0xFF8ED1D1),
             Color(0xFFBB79D2)
+        ),
+        percentages = listOf(
+            0f, 0.5f, 1f
         )
     )
 
@@ -49,6 +55,11 @@ fun SplashScreen(
             modifier = modifier
                 .padding(innerPadding)
                 .fillMaxSize()
+                .clickable {
+                    navController.navigate("home_screen") {
+                        popUpTo("splash_screen") { inclusive = true }
+                    }
+                }
         ) {
             RotatingShapes(modifier = Modifier.fillMaxSize())
             AnimatedText(modifier = Modifier.align(Alignment.Center))
