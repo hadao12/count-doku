@@ -1,4 +1,8 @@
 package com.coda.countdoku.presentation.level
 
-class HomeUiState {
-}
+import com.coda.countdoku.models.GameLevel
+
+data class LevelUiState(
+    val currentLevel: Int = 0,
+    val gameLevels: List<GameLevel> = emptyList()
+)

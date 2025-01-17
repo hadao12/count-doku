@@ -4,8 +4,11 @@ import android.content.Context
 import android.database.Cursor
 import com.coda.countdoku.data.local.DatabaseHelper
 import com.coda.countdoku.models.GameLevel
+import javax.inject.Inject
 
-class GameMetaDataDao(private val context: Context) {
+class GameMetaDataDao @Inject constructor(
+    private val context: Context
+) {
     private val dbHelper = DatabaseHelper(context)
 
     fun getAllLevel(): List<GameLevel> {

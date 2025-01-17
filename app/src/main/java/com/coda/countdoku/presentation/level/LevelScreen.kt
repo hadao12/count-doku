@@ -41,7 +41,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.coda.countdoku.R
 import com.coda.countdoku.models.GameLevel
@@ -52,14 +52,14 @@ import kotlinx.coroutines.delay
 fun LevelScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
-    viewModel: LevelViewModel = viewModel()
+    viewModel: LevelViewModel = hiltViewModel()
 ) {
-    val gameLevelList by viewModel.gameLevel.collectAsState()
-    val currentLevel by viewModel.currentLevel.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
 
     Level(
         modifier = modifier,
-        gameLevelList = gameLevelList,
+        gameLevelList = uiState.gameLevels,
+        currentLevel = uiState.currentLevel,
         onClickToPlay = {},
         onClickToGoADFree = {}
     )
@@ -69,12 +69,13 @@ fun LevelScreen(
 fun Level(
     modifier: Modifier = Modifier,
     gameLevelList: List<GameLevel>,
+    currentLevel: Int = 0,
     onClickToPlay: () -> Unit = {},
     onClickToGoADFree: () -> Unit = {}
 ) {
     val gradientBrush = getGradientForLevel(level = 1)
 
-    val pagerState = rememberPagerState(initialPage = 0) {
+    val pagerState = rememberPagerState(initialPage = currentLevel - 1) {
         gameLevelList.size
     }
 
