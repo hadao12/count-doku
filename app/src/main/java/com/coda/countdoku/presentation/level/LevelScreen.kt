@@ -1,5 +1,6 @@
 package com.coda.countdoku.presentation.level
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -25,12 +26,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
@@ -105,6 +108,7 @@ fun Level(
                     ),
                     modifier = modifier.padding(top = 96.dp)
                 )
+
                 HorizontalPager(
                     state = pagerState,
                     contentPadding = PaddingValues(horizontal = 50.dp)
@@ -126,28 +130,52 @@ fun Level(
                         )
                     }
                 }
+
+                val currentPage = pagerState.currentPage
+                val isLocked = gameLevelList[currentPage].level > currentLevel
+
                 Row(
                     modifier = modifier,
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.math_icon),
-                        contentDescription = "Math Icon",
-                        modifier = Modifier
-                            .size(45.dp)
-                            .padding(end = 10.dp)
-                    )
-                    Text(
-                        text = "12 to pass",
-                        style = TextStyle(
-                            fontSize = 25.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFFFBFFCD),
-                            letterSpacing = 4.sp
-                        ),
-                    )
+                    if (!isLocked) {
+                        Image(
+                            painter = painterResource(id = R.drawable.math_icon),
+                            contentDescription = "Math Icon",
+                            modifier = Modifier
+                                .size(45.dp)
+                                .padding(end = 10.dp)
+                        )
+                        Text(
+                            text = "12 to pass",
+                            style = TextStyle(
+                                fontSize = 25.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFFFBFFCD),
+                                letterSpacing = 4.sp
+                            ),
+                        )
+                    } else {
+                        Image(
+                            painter = painterResource(id = R.drawable.lock),
+                            contentDescription = "Lock Icon",
+                            modifier = Modifier
+                                .size(45.dp)
+                                .padding(end = 10.dp)
+                        )
+                        Text(
+                            text = "Complete Level $currentLevel",
+                            style = TextStyle(
+                                fontSize = 25.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFFFBFFCD),
+                                letterSpacing = 4.sp
+                            ),
+                        )
+                    }
                 }
+
                 Column(
                     modifier = Modifier
                         .padding(top = 90.dp),
@@ -160,16 +188,24 @@ fun Level(
                             .fillMaxWidth()
                             .height(67.dp),
                         shape = RoundedCornerShape(25.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.White
-                        )
+                        colors = if (isLocked) {
+                            ButtonDefaults.buttonColors(
+                                containerColor = Color(0x19FFFFFF)
+                            )
+                        } else {
+                            ButtonDefaults.buttonColors(
+                                containerColor = Color.White
+                            )
+                        },
+                        enabled = !isLocked
                     ) {
                         Text(
                             text = "PLAY",
                             fontSize = 18.sp,
-                            color = Color.Black,
+                            color = if (isLocked) Color.Black.copy(alpha = 0.5f) else Color.Black,
                             fontWeight = FontWeight.Bold,
-                            letterSpacing = 4.sp
+                            letterSpacing = 4.sp,
+                            modifier = Modifier.graphicsLayer(alpha = if (isLocked) 0.5f else 1f)
                         )
                     }
 
