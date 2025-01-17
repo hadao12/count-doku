@@ -1,6 +1,5 @@
 package com.coda.countdoku.presentation.level
 
-import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -26,14 +25,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
@@ -76,11 +73,12 @@ fun Level(
     onClickToPlay: () -> Unit = {},
     onClickToGoADFree: () -> Unit = {}
 ) {
-    val gradientBrush = getGradientForLevel(level = 1)
-
     val pagerState = rememberPagerState(initialPage = currentLevel - 1) {
         gameLevelList.size
     }
+
+    val currentPage = pagerState.currentPage
+    val gradientBrush = getGradientForLevel(level = currentPage + 1)
 
     Scaffold(
         modifier = modifier.background(gradientBrush),
@@ -131,7 +129,6 @@ fun Level(
                     }
                 }
 
-                val currentPage = pagerState.currentPage
                 val isLocked = gameLevelList[currentPage].level > currentLevel
 
                 Row(
