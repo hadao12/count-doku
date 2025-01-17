@@ -55,16 +55,22 @@ fun LevelScreen(
     viewModel: LevelViewModel = viewModel()
 ) {
     val gameLevelList by viewModel.gameLevel.collectAsState()
+    val currentLevel by viewModel.currentLevel.collectAsState()
+
     Level(
         modifier = modifier,
-        gameLevelList = gameLevelList
+        gameLevelList = gameLevelList,
+        onClickToPlay = {},
+        onClickToGoADFree = {}
     )
 }
 
 @Composable
 fun Level(
     modifier: Modifier = Modifier,
-    gameLevelList: List<GameLevel>
+    gameLevelList: List<GameLevel>,
+    onClickToPlay: () -> Unit = {},
+    onClickToGoADFree: () -> Unit = {}
 ) {
     val gradientBrush = getGradientForLevel(level = 1)
 
@@ -148,7 +154,7 @@ fun Level(
                     verticalArrangement = Arrangement.Center
                 ) {
                     Button(
-                        onClick = { },
+                        onClick = onClickToPlay,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(67.dp),
@@ -169,7 +175,7 @@ fun Level(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Button(
-                        onClick = { },
+                        onClick = onClickToGoADFree,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(67.dp),
