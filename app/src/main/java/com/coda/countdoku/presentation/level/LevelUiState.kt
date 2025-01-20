@@ -4,5 +4,7 @@ import com.coda.countdoku.models.GameLevel
 
 data class LevelUiState(
     val currentLevel: Int = 0,
-    val gameLevels: List<GameLevel> = emptyList()
+    val gameLevelList: List<GameLevel> = emptyList(),
+    val levelSelectedToPlay: Int = 0,
+    val currentTotalPuzzle: Int = 0
 )

@@ -25,6 +25,6 @@ class PlayerProgressManager @Inject constructor(
     companion object {
         private const val PREF_NAME = "player_progress"
         private const val KEY_CURRENT_LEVEL = "current_level"
-        private const val DEFAULT_LEVEL = 3
+        private const val DEFAULT_LEVEL = 1
     }
 }

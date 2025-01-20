@@ -26,11 +26,14 @@ class LevelViewModel @Inject constructor(
     private fun initializeLevelData() {
         viewModelScope.launch {
             val currentLevel = progressManager.getCurrentLevel()
-            val gameLevels = gameMetaDataDao.getAllLevel()
-
+            val gameLevelList = gameMetaDataDao.getAllLevel()
+            val currentTotalPuzzle = gameLevelList
+                .find { it.level == currentLevel }
+                ?.totalPuzzles ?: 0
             _uiState.value = LevelUiState(
                 currentLevel = currentLevel,
-                gameLevels = gameLevels
+                gameLevelList = gameLevelList,
+                currentTotalPuzzle = currentTotalPuzzle
             )
         }
     }

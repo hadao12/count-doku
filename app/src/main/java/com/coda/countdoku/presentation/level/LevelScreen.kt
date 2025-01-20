@@ -42,26 +42,38 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
 import com.coda.countdoku.R
 import com.coda.countdoku.models.GameLevel
 import com.coda.countdoku.presentation.utils.getGradientForLevel
+import com.ramcosta.composedestinations.annotation.Destination
+import com.ramcosta.composedestinations.annotation.RootGraph
+import com.ramcosta.composedestinations.generated.destinations.PuzzleScreenDestination
+import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.delay
+import timber.log.Timber
 
+@Destination<RootGraph>
 @Composable
 fun LevelScreen(
     modifier: Modifier = Modifier,
-    navController: NavController,
+    navigator: DestinationsNavigator,
     viewModel: LevelViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
     Level(
         modifier = modifier,
-        gameLevelList = uiState.gameLevels,
+        gameLevelList = uiState.gameLevelList,
         currentLevel = uiState.currentLevel,
-        onClickToPlay = {},
-        onClickToGoADFree = {}
+        onClickToPlay = { levelSelected ->
+            navigator.navigate(
+                PuzzleScreenDestination(
+                    levelSelectedToPlay = levelSelected,
+                    currentTotalPuzzle = uiState.currentTotalPuzzle
+                )
+            )
+        },
+        onClickToGoADFree = {},
     )
 }
 
@@ -70,7 +82,7 @@ fun Level(
     modifier: Modifier = Modifier,
     gameLevelList: List<GameLevel>,
     currentLevel: Int = 0,
-    onClickToPlay: () -> Unit = {},
+    onClickToPlay: (Int) -> Unit = {},
     onClickToGoADFree: () -> Unit = {}
 ) {
     val pagerState = rememberPagerState(initialPage = currentLevel - 1) {
@@ -79,7 +91,9 @@ fun Level(
 
     val currentPage = pagerState.currentPage
     val gradientBrush = getGradientForLevel(level = currentPage + 1)
+    val levelSelectedToPlay = currentPage + 1
 
+    Timber.d("LevelSelectedToPlay: $levelSelectedToPlay, CurrentPage: $currentPage")
     Scaffold(
         modifier = modifier.background(gradientBrush),
         containerColor = Color.Transparent
@@ -180,7 +194,7 @@ fun Level(
                     verticalArrangement = Arrangement.Center
                 ) {
                     Button(
-                        onClick = onClickToPlay,
+                        onClick = { onClickToPlay(levelSelectedToPlay) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(67.dp),

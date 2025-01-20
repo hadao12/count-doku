@@ -1,26 +1,31 @@
 package com.coda.countdoku.presentation.puzzle
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.viewModelScope
-import com.coda.countdoku.data.local.dao.Level1Dao
-import com.coda.countdoku.models.Level1
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
+import javax.inject.Inject
 
-class PuzzleViewModel(application: Application) : AndroidViewModel(application) {
-    private val _lever1List = MutableStateFlow<List<Level1>>(emptyList())
-    val lever1List: StateFlow<List<Level1>> = _lever1List
+@HiltViewModel
+class PuzzleViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
+) : ViewModel() {
+    private val _uiState = MutableStateFlow(PuzzleUiState())
+    val uiState = _uiState.asStateFlow()
+
+    private val _uiEvent = Channel<PuzzleUiEvent>()
+    val uiEvent = _uiEvent.receiveAsFlow()
 
     init {
-        fetchLever1Data()
+        val levelSelectedToPlay = savedStateHandle.get<Int>("levelSelectedToPlay") ?: 0
+        val currentTotalPuzzle = savedStateHandle.get<Int>("currentTotalPuzzle") ?: 0
+        _uiState.update { it.copy(levelSelectedToPlay = levelSelectedToPlay) }
+        _uiState.update { it.copy(currentTotalPuzzle = currentTotalPuzzle) }
     }
 
-    private fun fetchLever1Data() {
-        viewModelScope.launch {
-            val lever1Dao = Level1Dao(getApplication())
-            _lever1List.value = lever1Dao.getAllLevel1()
-        }
-    }
+
 }

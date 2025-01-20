@@ -14,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -26,15 +27,20 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import com.coda.countdoku.R
 import com.coda.countdoku.presentation.utils.createGradientWithColorsAndPercentages
+import com.ramcosta.composedestinations.annotation.Destination
+import com.ramcosta.composedestinations.annotation.RootGraph
+import com.ramcosta.composedestinations.generated.NavGraphs
+import com.ramcosta.composedestinations.generated.destinations.LevelScreenDestination
+import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.delay
 
+@Destination<RootGraph>(start = true)
 @Composable
 fun SplashScreen(
     modifier: Modifier = Modifier,
-    navController: NavController
+    navigator: DestinationsNavigator
 ) {
     val gradientBrush = createGradientWithColorsAndPercentages(
         colors = listOf(
@@ -56,8 +62,12 @@ fun SplashScreen(
                 .padding(innerPadding)
                 .fillMaxSize()
                 .clickable {
-                    navController.navigate("home_screen") {
-                        popUpTo("splash_screen") { inclusive = true }
+                    navigator.navigate(LevelScreenDestination()){
+                        popUpTo(NavGraphs.root) {
+                            saveState = false
+                        }
+                        launchSingleTop = true
+                        restoreState = false
                     }
                 }
         ) {
@@ -69,7 +79,7 @@ fun SplashScreen(
 
 @Composable
 fun RotatingShapes(modifier: Modifier = Modifier) {
-    var rotation by remember { mutableStateOf(0f) }
+    var rotation by remember { mutableFloatStateOf(0f) }
 
     LaunchedEffect(Unit) {
         while (true) {
