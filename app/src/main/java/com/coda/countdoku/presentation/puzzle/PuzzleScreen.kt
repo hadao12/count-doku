@@ -90,6 +90,7 @@ fun Puzzle(
     var selectedMath = remember { mutableStateOf<String>("") }
     var total by remember { mutableIntStateOf(0) }
     var showFinalButton by remember { mutableStateOf(false) }
+    val calculations = remember { mutableStateListOf<String>() }
 
     fun rollback() {
         selectedNumbers.value = emptyList()
@@ -122,6 +123,8 @@ fun Puzzle(
             total = result
             numbers.removeAll(selectedNumbers.value)
             numbers.add(total)
+
+            calculations.add("$num1 ${selectedMath.value} $num2 = $result")
 
             selectedNumbers.value = emptyList()
             selectedMath.value = ""
@@ -171,6 +174,30 @@ fun Puzzle(
                     ),
                     modifier = modifier.padding(top = 64.dp)
                 )
+                calculations.chunked(2).forEach { rowItems ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 32.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        rowItems.forEach { calculation ->
+                            Text(
+                                text = calculation,
+                                style = TextStyle(
+                                    fontSize = 24.sp,
+                                    fontWeight = FontWeight.Normal,
+                                    color = Color(0xFFFBFFCD)
+                                ),
+                                modifier = Modifier
+                                    .padding(horizontal = 8.dp)
+                            )
+                        }
+                        if (rowItems.size < 2) {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
+                    }
+                }
                 Spacer(modifier = Modifier.weight(1f))
                 Text(
                     text = "Make 9 using:",
@@ -263,18 +290,6 @@ fun Puzzle(
 
                 if (selectedNumbers.value.size == 2 && selectedMath.value.isNotEmpty()) {
                     performOperation()
-                }
-
-                if (showFinalButton) {
-                    Text(
-                        text = "Congratulations! You reached the target.",
-                        style = TextStyle(
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.Green
-                        ),
-                        modifier = modifier.padding(bottom = 16.dp)
-                    )
                 }
             }
         }
