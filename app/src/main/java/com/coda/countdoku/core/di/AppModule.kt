@@ -2,6 +2,7 @@ package com.coda.countdoku.core.di
 
 import android.content.Context
 import com.coda.countdoku.data.local.dao.GameMetaDataDao
+import com.coda.countdoku.data.local.dao.LevelDao
 import com.coda.countdoku.data.preferences.PlayerProgressManager
 import dagger.Module
 import dagger.Provides
@@ -32,4 +33,9 @@ object AppModule {
         return GameMetaDataDao(context)
     }
 
+    @Provides
+    @Singleton
+    fun provideLevelDao(context: Context): LevelDao {
+        return LevelDao(context)
+    }
 }
