@@ -1,4 +1,5 @@
 package com.coda.countdoku.presentation.level
 
-class LevelUiAction {
+sealed class LevelUiAction {
+    data object RefreshLevel : LevelUiAction()
 }

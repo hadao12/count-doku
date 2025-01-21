@@ -3,26 +3,28 @@ package com.coda.countdoku.data.local.dao
 import android.content.Context
 import android.database.Cursor
 import com.coda.countdoku.data.local.DatabaseHelper
-import com.coda.countdoku.models.Level
+import com.coda.countdoku.models.Puzzle
 
-class LevelDao(private val context: Context) {
+class LevelDao(context: Context) {
     private val dbHelper = DatabaseHelper(context)
 
-    fun getDataLevel(level: Int): List<Level> {
+    fun getDataLevel(level: Int): List<Puzzle> {
         val db = dbHelper.openDatabase()
         val tableName = getTableNameForLevel(level)
 
         val cursor: Cursor = db.query(tableName, null, null, null, null, null, null)
-        val levelList = mutableListOf<Level>()
+        val levelList = mutableListOf<Puzzle>()
 
         if (cursor.moveToFirst()) {
             do {
-                val levelData = Level(
+                val levelData = Puzzle(
                     unique_id = cursor.getString(cursor.getColumnIndexOrThrow("unique_id")),
                     idx = cursor.getInt(cursor.getColumnIndexOrThrow("idx")),
                     level = cursor.getInt(cursor.getColumnIndexOrThrow("level")),
                     hint = cursor.getString(cursor.getColumnIndexOrThrow("hint")),
-                    numbers = cursor.getString(cursor.getColumnIndexOrThrow("numbers")),
+                    numbers = cursor.getString(cursor.getColumnIndexOrThrow("numbers"))
+                        .split(",")
+                        .map { it.trim().toInt() },
                     target = cursor.getInt(cursor.getColumnIndexOrThrow("target"))
                 )
                 levelList.add(levelData)

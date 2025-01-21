@@ -150,7 +150,7 @@ fun CustomProgressBar(
                 modifier = Modifier
                     .fillMaxSize()
                     .clip(RoundedCornerShape(9.dp))
-                    .background(Color.Gray)
+                    .background(Color(0xFFE0E0E0))
             )
             Box(
                 modifier = Modifier

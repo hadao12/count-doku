@@ -1,5 +1,10 @@
 package com.coda.countdoku.presentation.level
 
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -14,6 +19,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -24,9 +30,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -49,7 +52,8 @@ import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.generated.destinations.PuzzleScreenDestination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
-import kotlinx.coroutines.delay
+import com.ramcosta.composedestinations.result.NavResult
+import com.ramcosta.composedestinations.result.ResultRecipient
 import timber.log.Timber
 
 @Destination<RootGraph>
@@ -57,14 +61,35 @@ import timber.log.Timber
 fun LevelScreen(
     modifier: Modifier = Modifier,
     navigator: DestinationsNavigator,
-    viewModel: LevelViewModel = hiltViewModel()
+    viewModel: LevelViewModel = hiltViewModel(),
+    resultPuzzle: ResultRecipient<PuzzleScreenDestination, Boolean>,
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val pagerState = rememberPagerState(initialPage = uiState.currentLevel - 1) {
+        uiState.gameLevelList.size
+    }
+
+    LaunchedEffect(uiState.currentLevel) {
+        viewModel.onEvent(LevelUiAction.RefreshLevel)
+        pagerState.scrollToPage(uiState.currentLevel - 1)
+    }
+
+    resultPuzzle.onNavResult { result ->
+        when (result) {
+            NavResult.Canceled -> {}
+            is NavResult.Value -> {
+                if (result.value) {
+                    viewModel.onEvent(LevelUiAction.RefreshLevel)
+                }
+            }
+        }
+    }
 
     Level(
         modifier = modifier,
         gameLevelList = uiState.gameLevelList,
         currentLevel = uiState.currentLevel,
+        pagerState = pagerState,
         onClickToPlay = { levelSelected ->
             navigator.navigate(
                 PuzzleScreenDestination(
@@ -82,12 +107,10 @@ fun Level(
     modifier: Modifier = Modifier,
     gameLevelList: List<GameLevel>,
     currentLevel: Int = 0,
+    pagerState: PagerState,
     onClickToPlay: (Int) -> Unit = {},
     onClickToGoADFree: () -> Unit = {}
 ) {
-    val pagerState = rememberPagerState(initialPage = currentLevel - 1) {
-        gameLevelList.size
-    }
 
     val currentPage = pagerState.currentPage
     val gradientBrush = getGradientForLevel(level = currentPage + 1)
@@ -278,14 +301,18 @@ fun Level(
 
 @Composable
 fun LevelRotatingShapes(modifier: Modifier = Modifier) {
-    var rotation by remember { mutableFloatStateOf(0f) }
+    val infiniteTransition = rememberInfiniteTransition()
 
-    LaunchedEffect(Unit) {
-        while (true) {
-            rotation += 0.4f
-            delay(16)
-        }
-    }
+    val rotation by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(
+                durationMillis = 5000,
+                easing = LinearEasing
+            )
+        )
+    )
 
     Box(
         modifier = modifier.height(600.dp),

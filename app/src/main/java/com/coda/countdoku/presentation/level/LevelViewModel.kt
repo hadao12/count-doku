@@ -23,6 +23,14 @@ class LevelViewModel @Inject constructor(
         initializeLevelData()
     }
 
+    fun onEvent(event: LevelUiAction ){
+        when(event){
+            LevelUiAction.RefreshLevel -> {
+                initializeLevelData()
+            }
+        }
+    }
+
     private fun initializeLevelData() {
         viewModelScope.launch {
             val currentLevel = progressManager.getCurrentLevel()
@@ -35,13 +43,6 @@ class LevelViewModel @Inject constructor(
                 gameLevelList = gameLevelList,
                 currentTotalPuzzle = currentTotalPuzzle
             )
-        }
-    }
-
-    fun updateCurrentLevel(newLevel: Int) {
-        viewModelScope.launch {
-            progressManager.saveCurrentLevel(newLevel)
-            _uiState.value = _uiState.value.copy(currentLevel = newLevel)
         }
     }
 }

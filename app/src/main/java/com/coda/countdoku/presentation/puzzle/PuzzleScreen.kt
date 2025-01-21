@@ -1,6 +1,11 @@
 package com.coda.countdoku.presentation.puzzle
 
 import IconButtonComponent
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -19,7 +24,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -33,20 +37,17 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.coda.countdoku.R
-import com.coda.countdoku.models.Level
 import com.coda.countdoku.presentation.puzzle.component.CustomProgressBar
 import com.coda.countdoku.presentation.utils.getGradientForLevel
-import com.coda.countdoku.ui.theme.CountDokuTheme
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.result.ResultBackNavigator
-import kotlinx.coroutines.delay
+import timber.log.Timber
 
 @Destination<RootGraph>(
     navArgs = PuzzleArgs::class
@@ -58,18 +59,57 @@ fun PuzzleScreen(
     resultNavigator: ResultBackNavigator<Boolean>,
     viewModel: PuzzleViewModel = hiltViewModel(),
 ) {
+
+    LaunchedEffect(key1 = true) {
+        viewModel.uiEvent.collect { event ->
+            when (event) {
+                PuzzleUiEvent.LevelMaxReached -> {
+                    Timber.d("Đã đạt cấp độ tối đa!")
+                }
+
+                is PuzzleUiEvent.LevelUpdated -> {
+                    Timber.d("Cấp độ mới: ${event.newLevel}")
+                }
+
+                PuzzleUiEvent.NavigateBack -> {
+                    resultNavigator.navigateBack(true)
+                }
+            }
+        }
+    }
     val uiState by viewModel.uiState.collectAsState()
-    val levelData = uiState.dataLevels.firstOrNull()
+    val selectedQuestions = remember { uiState.selectedQuestions }
+    val currentQuestionIndex = remember { mutableIntStateOf(0) }
+    val currentPuzzle = selectedQuestions.getOrNull(currentQuestionIndex.intValue)
+    var answeredCorrectly by remember { mutableIntStateOf(0) }
+
+    val onCorrectAnswer: () -> Unit = {
+        answeredCorrectly++
+
+        Timber.d("Câu trả lời đúng: $answeredCorrectly/${uiState.currentTotalPuzzle}")
+
+        if (currentQuestionIndex.intValue + 1 < selectedQuestions.size) {
+            currentQuestionIndex.intValue++
+        } else {
+            viewModel.updateLevel()
+            resultNavigator.setResult(true)
+            navigator.navigateUp()
+        }
+    }
+
+    Timber.d("Số câu cần trả lời: ${uiState.currentTotalPuzzle}")
+
     Puzzle(
         modifier = modifier,
         levelSelectedToPlay = uiState.levelSelectedToPlay,
         currentTotalPuzzle = uiState.currentTotalPuzzle,
-        answeredCount = 1,
+        answeredCount = currentQuestionIndex.intValue,
+        numbers = currentPuzzle?.numbers ?: emptyList(),
+        target = currentPuzzle?.target ?: 0,
+        onCorrectAnswer = onCorrectAnswer,
         onNavigateBack = {
             resultNavigator.navigateBack(true)
         },
-        levelData = levelData,
-        target = 9
     )
 }
 
@@ -79,39 +119,54 @@ fun Puzzle(
     levelSelectedToPlay: Int,
     currentTotalPuzzle: Int,
     answeredCount: Int,
-    levelData: Level?,
+    numbers: List<Int>,
     target: Int,
+    onCorrectAnswer: () -> Unit,
     onNavigateBack: () -> Unit = {}
 ) {
-    var rotation by remember { mutableFloatStateOf(0f) }
+    Timber.d("Initial numbers: ${numbers.joinToString(", ")}")
     val gradientBrush = getGradientForLevel(level = levelSelectedToPlay)
-    var numbers = remember { mutableStateListOf(2, 3, 4) }
-    var selectedNumbers = remember { mutableStateOf<List<Int>>(emptyList()) }
+    var currentNumbers = remember { mutableStateListOf(*numbers.toTypedArray()) }
+    var selectedIndexes = remember { mutableStateListOf<Int>() }
     var selectedMath = remember { mutableStateOf<String>("") }
     var total by remember { mutableIntStateOf(0) }
-    var showFinalButton by remember { mutableStateOf(false) }
     val calculations = remember { mutableStateListOf<String>() }
+    val infiniteTransition = rememberInfiniteTransition()
 
     fun rollback() {
-        selectedNumbers.value = emptyList()
+        selectedIndexes.clear()
         selectedMath.value = ""
         total = 0
-        showFinalButton = false
-        numbers.clear()
-        numbers.addAll(listOf(2, 3, 4))
+        calculations.clear()
+        currentNumbers.clear()
+        currentNumbers.addAll(numbers)
+        calculations.clear()
     }
 
-    LaunchedEffect(Unit) {
-        while (true) {
-            rotation += 0.4f
-            delay(16)
-        }
+    LaunchedEffect(numbers) {
+        currentNumbers.clear()
+        currentNumbers.addAll(numbers)
+        selectedIndexes.clear()
+        selectedMath.value = ""
+        calculations.clear()
+        total = 0
     }
+
+    val rotation by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(
+                durationMillis = 5000,
+                easing = LinearEasing
+            )
+        )
+    )
 
     fun performOperation() {
-        if (selectedNumbers.value.size == 2 && selectedMath.value.isNotEmpty()) {
-            val num1 = selectedNumbers.value[0]
-            val num2 = selectedNumbers.value[1]
+        if (selectedIndexes.size == 2 && currentNumbers.size > 1 && selectedMath.value.isNotEmpty()) {
+            val num1 = currentNumbers[selectedIndexes[0]]
+            val num2 = currentNumbers[selectedIndexes[1]]
             val result = when (selectedMath.value) {
                 "+" -> num1 + num2
                 "-" -> num1 - num2
@@ -120,19 +175,21 @@ fun Puzzle(
                 else -> 0
             }
 
-            total = result
-            numbers.removeAll(selectedNumbers.value)
-            numbers.add(total)
+            currentNumbers[selectedIndexes[0]] = result
+            currentNumbers.removeAt(selectedIndexes[1])
 
+            Timber.d("Initial numbers: ${numbers.joinToString(", ")}")
+            Timber.d("Initial numbers: ${currentNumbers.joinToString(", ")}")
             calculations.add("$num1 ${selectedMath.value} $num2 = $result")
 
-            selectedNumbers.value = emptyList()
-            selectedMath.value = ""
-
-            if (numbers.size == 1) {
-                if (numbers[0] == target) {
-                    showFinalButton = true
+            if (currentNumbers.size == 1) {
+                if (currentNumbers[0] == target) {
+                    onCorrectAnswer()
+                    rollback()
                 }
+            } else {
+                selectedIndexes.clear()
+                selectedMath.value = ""
             }
         }
     }
@@ -200,7 +257,7 @@ fun Puzzle(
                 }
                 Spacer(modifier = Modifier.weight(1f))
                 Text(
-                    text = "Make 9 using:",
+                    text = "Make $target using:",
                     style = TextStyle(
                         fontSize = 25.sp,
                         fontWeight = FontWeight.Bold,
@@ -213,16 +270,16 @@ fun Puzzle(
                     modifier = modifier.padding(bottom = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    numbers.forEachIndexed { index, number ->
-                        val isSelected = selectedNumbers.value.contains(number)
+                    currentNumbers.forEachIndexed { index, number ->
+                        val isSelected =
+                            selectedIndexes.contains(index)
                         IconButtonComponent(
                             onClick = {
                                 if (isSelected) {
-                                    selectedNumbers.value =
-                                        selectedNumbers.value.filter { it != number }
+                                    selectedIndexes.remove(index)
                                 } else {
-                                    if (selectedNumbers.value.size < 2) {
-                                        selectedNumbers.value = selectedNumbers.value + number
+                                    if (selectedIndexes.size < 2) {
+                                        selectedIndexes.add(index)
                                     }
                                 }
                             },
@@ -288,7 +345,7 @@ fun Puzzle(
                     )
                 }
 
-                if (selectedNumbers.value.size == 2 && selectedMath.value.isNotEmpty()) {
+                if (selectedIndexes.size == 2 && selectedMath.value.isNotEmpty()) {
                     performOperation()
                 }
             }
@@ -313,15 +370,5 @@ fun PuzzleRotatingShape(modifier: Modifier = Modifier, rotation: Float) {
                     rotationZ = -rotation
                 )
         )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun ShowPuzzleScreen(
-    modifier: Modifier = Modifier
-) {
-    CountDokuTheme {
-
     }
 }

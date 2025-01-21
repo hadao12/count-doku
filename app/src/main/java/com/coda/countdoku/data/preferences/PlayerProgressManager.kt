@@ -22,6 +22,13 @@ class PlayerProgressManager @Inject constructor(
         return sharedPreferences.getInt(KEY_CURRENT_LEVEL, DEFAULT_LEVEL)
     }
 
+    fun updateLevel() {
+        val currentLevel = getCurrentLevel()
+        if (currentLevel < 21) {
+            saveCurrentLevel(currentLevel + 1)
+        }
+    }
+
     companion object {
         private const val PREF_NAME = "player_progress"
         private const val KEY_CURRENT_LEVEL = "current_level"

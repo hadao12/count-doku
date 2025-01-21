@@ -1,5 +1,10 @@
 package com.coda.countdoku.presentation.splash
 
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -14,7 +19,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -62,7 +66,7 @@ fun SplashScreen(
                 .padding(innerPadding)
                 .fillMaxSize()
                 .clickable {
-                    navigator.navigate(LevelScreenDestination()){
+                    navigator.navigate(LevelScreenDestination()) {
                         popUpTo(NavGraphs.root) {
                             saveState = false
                         }
@@ -79,14 +83,18 @@ fun SplashScreen(
 
 @Composable
 fun RotatingShapes(modifier: Modifier = Modifier) {
-    var rotation by remember { mutableFloatStateOf(0f) }
+    val infiniteTransition = rememberInfiniteTransition()
 
-    LaunchedEffect(Unit) {
-        while (true) {
-            rotation += 0.4f
-            delay(16)
-        }
-    }
+    val rotation by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(
+                durationMillis = 5000,
+                easing = LinearEasing
+            )
+        )
+    )
 
     Box(
         modifier = modifier.fillMaxSize(),
