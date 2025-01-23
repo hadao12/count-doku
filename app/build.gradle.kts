@@ -89,4 +89,7 @@ dependencies {
 
     // Navigation animation
     implementation(libs.accompanist.navigation.animation)
+
+    implementation("com.google.accompanist:accompanist-flowlayout:0.30.1")
+
 }

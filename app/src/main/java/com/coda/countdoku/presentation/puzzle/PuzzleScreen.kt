@@ -12,7 +12,9 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
+import com.google.accompanist.flowlayout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -45,6 +47,7 @@ import com.coda.countdoku.presentation.puzzle.component.CustomProgressBar
 import com.coda.countdoku.presentation.utils.getGradientForLevel
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
+import com.ramcosta.composedestinations.generated.destinations.PassScreenDestination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.result.ResultBackNavigator
 import timber.log.Timber
@@ -83,20 +86,6 @@ fun PuzzleScreen(
     val currentPuzzle = selectedQuestions.getOrNull(currentQuestionIndex.intValue)
     var answeredCorrectly by remember { mutableIntStateOf(0) }
 
-    val onCorrectAnswer: () -> Unit = {
-        answeredCorrectly++
-
-        Timber.d("Câu trả lời đúng: $answeredCorrectly/${uiState.currentTotalPuzzle}")
-
-        if (currentQuestionIndex.intValue + 1 < selectedQuestions.size) {
-            currentQuestionIndex.intValue++
-        } else {
-            viewModel.updateLevel()
-            resultNavigator.setResult(true)
-            navigator.navigateUp()
-        }
-    }
-
     Timber.d("Số câu cần trả lời: ${uiState.currentTotalPuzzle}")
 
     Puzzle(
@@ -106,13 +95,23 @@ fun PuzzleScreen(
         answeredCount = currentQuestionIndex.intValue,
         numbers = currentPuzzle?.numbers ?: emptyList(),
         target = currentPuzzle?.target ?: 0,
-        onCorrectAnswer = onCorrectAnswer,
+        onCorrectAnswer = {
+            answeredCorrectly++
+            Timber.d("Câu trả lời đúng: $answeredCorrectly/${uiState.currentTotalPuzzle}")
+            if (currentQuestionIndex.intValue + 1 < selectedQuestions.size) {
+                currentQuestionIndex.intValue++
+            } else {
+                viewModel.updateLevel()
+                navigator.navigate(PassScreenDestination())
+            }
+        },
         onNavigateBack = {
             resultNavigator.navigateBack(true)
         },
     )
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun Puzzle(
     modifier: Modifier = Modifier,
@@ -266,13 +265,13 @@ fun Puzzle(
                     ),
                     modifier = modifier.padding(bottom = 18.dp)
                 )
-                Row(
+                FlowRow(
                     modifier = modifier.padding(bottom = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    mainAxisSpacing = 16.dp,
+                    crossAxisSpacing = 16.dp
                 ) {
                     currentNumbers.forEachIndexed { index, number ->
-                        val isSelected =
-                            selectedIndexes.contains(index)
+                        val isSelected = selectedIndexes.contains(index)
                         IconButtonComponent(
                             onClick = {
                                 if (isSelected) {

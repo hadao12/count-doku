@@ -36,11 +36,10 @@ class PuzzleViewModel @Inject constructor(
     }
 
     private fun loadLevelData() {
-        val levelSelectedToPlay = _uiState.value.levelSelectedToPlay
-        val dataLevels = levelDao.getDataLevel(levelSelectedToPlay)
+        val dataLevels = levelDao.getDataLevel(_uiState.value.levelSelectedToPlay)
 
         val selectedQuestions = generateQuestionsUseCase(
-            level = levelSelectedToPlay,
+            level = _uiState.value.levelSelectedToPlay,
             dataLevels = dataLevels,
             totalQuestions = _uiState.value.currentTotalPuzzle
         )
